@@ -65,6 +65,9 @@ class LoadSetsCommand extends ContainerAwareCommand
          */
         $manager = $this->getContainer()->get($managerServiceId);
 
+        // Store all loaded references in this array, so they can be used by other FixtureSets.
+        $references = array();
+
         foreach ($sets as $file) {
             $output->write("Loading file '$file' ... ");
 
@@ -75,7 +78,10 @@ class LoadSetsCommand extends ContainerAwareCommand
                 throw new \InvalidArgumentException("File '$file' does not return a FixtureSetInterface.");
             }
 
-            $entities = $manager->load($set);
+            $entities = $manager->load($set, $references);
+
+            // Only reusing loaded entities. Internal references are ignored because of intended private state.
+            $references = array_merge($references, $entities);
 
             $output->writeln("loaded " . count($entities) . " entities ... done.");
         }
